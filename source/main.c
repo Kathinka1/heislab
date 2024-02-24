@@ -4,7 +4,8 @@
 #include <time.h>
 #include "driver/elevio.h"
 #include "order.h"
-
+#include "elevator.h"
+#include "floor.h"
 
 
 int main(){
@@ -16,9 +17,10 @@ int main(){
 
     Order* p_headOrder = NULL;
 
-    addNewOrder(&p_headOrder, 1, DIRN_UP);
+    addNewOrder(&p_headOrder, 2, DIRN_UP);
 
     int startFloor = elevio_floorSensor();
+    int lastFloor;
     //    printf("Start floor: %d\n", startFloor);
 
     while (startFloor == -1) {
@@ -28,6 +30,12 @@ int main(){
 
     while(1){
         int volatile currentFloor = elevio_floorSensor();
+
+        if (currentFloor != -1) {
+            lastFloor = currentFloor;
+        }
+
+        //printf("Last floor: %d\n", lastFloor);
       //  printf("Current floor: %d\n", currentFloor);
        // printf("Head order: %p\n", p_headOrder);
         if (p_headOrder != NULL){
@@ -39,23 +47,25 @@ int main(){
             }
     }
 
-        if(currentFloor == 0){
-            elevio_motorDirection(DIRN_UP);
-        }
-
-    currentFloor = elevio_floorSensor();
-        if(currentFloor == N_FLOORS-1){
-            elevio_motorDirection(DIRN_DOWN);
-        }
-
         currentFloor = elevio_floorSensor();
+// CHECK IF FLOORBUTTONS ARE PRESSED AND UPDATE ORDERS
         for(int f = 0; f < N_FLOORS; f++){
+            for(int b = 0; b < 2; b++){
+                if(elevio_callButton(f, b)){
+                    floorButtonPressed(f,b, &p_headOrder, lastFloor);
+                }
+            }
+        }
+
+        /*for(int f = 0; f < N_FLOORS; f++){
             for(int b = 0; b < N_BUTTONS; b++){
                 int btnPressed = elevio_callButton(f, b);
+
                 elevio_buttonLamp(f, b, btnPressed);
                 printf("Button at floor %d, button type %d is %d\n", f, b, btnPressed);
             }
         }
+        */
 
         if(elevio_obstruction()){
             elevio_stopLamp(1);

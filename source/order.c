@@ -55,7 +55,7 @@ int checkFloor(Order* p_head, int currentFloor){
 }
 
 void changeFloorStop(Order** p_order, int floor, int value){
-    (*p_order)->floorStops[floor-1] = value;
+    (*p_order)->floorStops[floor] = value;
     return;
 }
 
@@ -63,7 +63,7 @@ void changeFloorStop(Order** p_order, int floor, int value){
 void stopAtDestination(Order** p_headOrder, int currentFloor){
     elevio_motorDirection(DIRN_STOP);
     elevio_doorOpenLamp(1);
-    //sleep(3);
+    sleep(3);
     elevio_doorOpenLamp(0);
     changeFloorStop(p_headOrder, currentFloor, 0);
     if (checkIfOrderIsDone(*p_headOrder, currentFloor)){
@@ -76,8 +76,8 @@ int checkIfOrderIsDone(Order* p_head, int currentFloor){
     {
         if (p_head->floorStops[i] == 1)
         {
-            return 1;
+            return 0;
         }
     }
-    return 0;
+    return 1;
 }
