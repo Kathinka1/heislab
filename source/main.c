@@ -3,85 +3,72 @@
 #include <signal.h>
 #include <time.h>
 #include "driver/elevio.h"
-#include "order.h"
+#include "buttons.h"
 #include "elevator.h"
-#include "floor.h"
+#include "stop.h"
 
 
 int main(){
     elevio_init();
 
-    
+    // Global variables
+    int hallDirectionUp[4] = {0, 0, 0, 0};
+    int hallDirectionDown[4] = {0, 0, 0, 0};
+    int floorButton[4] = {0, 0, 0, 0};
+
     printf("=== Example Program ===\n");
     printf("Press the stop button on the elevator panel to exit\n");
 
-    Order* p_headOrder = NULL;
-
-    addNewOrder(&p_headOrder, 2, DIRN_UP);
-
     int startFloor = elevio_floorSensor();
-    int lastFloor;
-    //    printf("Start floor: %d\n", startFloor);
 
     while (startFloor == -1) {
         elevio_motorDirection(DIRN_UP);
         startFloor = elevio_floorSensor();
-    }
+    } 
+    elevio_motorDirection(DIRN_STOP);
+
+    int volatile currentFloor = elevio_floorSensor();
+    MotorDirection direction = DIRN_STOP;
+    
+    elevio_doorOpenLamp(0);
+
+    int stopButton = 0;
+
+    resetButtons();
+
 
     while(1){
-        int volatile currentFloor = elevio_floorSensor();
-
-        if (currentFloor != -1) {
-            lastFloor = currentFloor;
-        }
-
-        //printf("Last floor: %d\n", lastFloor);
-      //  printf("Current floor: %d\n", currentFloor);
-       // printf("Head order: %p\n", p_headOrder);
-        if (p_headOrder != NULL){
-         elevio_motorDirection(p_headOrder->direction); 
-         //   printf("Floor: %d\n", currentFloor);
-
-            if (checkFloor(p_headOrder, currentFloor)){
-                stopAtDestination(&p_headOrder, currentFloor);
-            }
-    }
-
         currentFloor = elevio_floorSensor();
-// CHECK IF FLOORBUTTONS ARE PRESSED AND UPDATE ORDERS
-        for(int f = 0; f < N_FLOORS; f++){
-            for(int b = 0; b < 2; b++){
-                if(elevio_callButton(f, b)){
-                    floorButtonPressed(f,b, &p_headOrder, lastFloor);
-                }
-            }
+    
+
+        printf("Current floor: %d\n", currentFloor);
+     //   printf("Stop Button: %d\n", stopButton);
+
+        if(currentFloor == 0 && direction != DIRN_STOP){
+            elevio_motorDirection(DIRN_UP);
+            direction = DIRN_UP;
         }
 
-        /*for(int f = 0; f < N_FLOORS; f++){
-            for(int b = 0; b < N_BUTTONS; b++){
-                int btnPressed = elevio_callButton(f, b);
-
-                elevio_buttonLamp(f, b, btnPressed);
-                printf("Button at floor %d, button type %d is %d\n", f, b, btnPressed);
-            }
+        if(currentFloor == N_FLOORS-1 && direction != DIRN_STOP){
+            elevio_motorDirection(DIRN_DOWN);
+            direction = DIRN_DOWN;
         }
-        */
-
-        if(elevio_obstruction()){
-            elevio_stopLamp(1);
-            elevio_doorOpenLamp(1);
-            elevio_motorDirection(DIRN_STOP);
-        } else {
-            elevio_stopLamp(0);
-        }
+        checkIfShouldStop(currentFloor, &direction, &hallDirectionUp, &hallDirectionDown, &floorButton);
+        stopButton = elevio_stopButton();
+        checkStopButton(stopButton, &hallDirectionUp, &hallDirectionDown, &floorButton, currentFloor);
         
-        if(elevio_stopButton()){
-            elevio_motorDirection(DIRN_STOP);
-            break;
+
+        // Floor indicator light
+        if(currentFloor != -1){
+            elevio_floorIndicator(currentFloor);
         }
+
+        checkButtons(&hallDirectionUp, &hallDirectionDown, &floorButton);
+
+        checkIfAnyUnattendedOrders(&hallDirectionUp, &hallDirectionDown, &floorButton, &direction, currentFloor);
+
         
         nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
     }
 
-    return 0;
 }

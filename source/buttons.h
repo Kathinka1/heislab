@@ -4,7 +4,10 @@
 #include <signal.h>
 #include <time.h>
 #include "driver/elevio.h"
-#include "order.h"
 #include "elevator.h"
+#include "stop.h"
 
-void floorButtonPressed(int floor, int button, Order** pp_headOrder, int lastFloor);
+
+void checkButtons(int *hallDirectionUp, int *hallDirectionDown, int *floorButton);
+
+void resetButtons() ;
