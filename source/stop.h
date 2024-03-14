@@ -9,5 +9,4 @@
 #include "elevator.h"
 
 void checkStopButton(int stopButton, int* hallDirectionUp, int* hallDirectionDown, int* floorButton, int currentFloor);
-
 void obstruction();

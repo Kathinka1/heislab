@@ -9,5 +9,4 @@
 
 
 void checkButtons(int *hallDirectionUp, int *hallDirectionDown, int *floorButton);
-
 void resetButtons() ;
