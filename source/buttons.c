@@ -17,22 +17,7 @@ void checkButtons(int *hallDirectionUp, int *hallDirectionDown, int *floorButton
                     elevio_buttonLamp(f, b, floorButton[f]);
                 }
             }
-           /* switch (b)
-            {
-            case 0:
-                elevio_buttonLamp(f, b, hallDirectionUp[f]);
-                break;
-            case 1:
-                elevio_buttonLamp(f, b, hallDirectionDown[f]);
-                break;elevio_buttonLamp(currentFloor, BUTTON_CAB, 0);
-                elevio_buttonLamp(f, b, floorButton[f]);
-                break;
-            
-            default:
-                break; 
-            }*/
-          //  printf("Button at floor %d, button type %d is %d\n", f, b, btnPressed);
-        }
+         }
     }
 }
 
